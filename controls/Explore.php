@@ -16,6 +16,9 @@ use \Flight as Flight;
 use app\BaseControls\Control;
 use app\Bean;
 use app\mcptools\Introspector;
+use app\Sidecar\Kernel;
+use app\Sidecar\Access;
+use app\Sidecar\Sso;
 
 class Explore extends Control {
 
@@ -23,7 +26,7 @@ class Explore extends Control {
     public function index($params = []) {
         $s = $this->session();
         if (!$s) { $this->requireLaunch(); return; }
-        $access = new ExplorerAccess($this->core());
+        $access = new Access($this->core());
         $this->render('explore/index', [
             'instances' => $access->instances((int) $s['member_id']),
             'email'     => $s['email'],
@@ -71,11 +74,11 @@ class Explore extends Control {
 
     /** The sidecar session, or null. */
     private function session(): ?array {
-        return $_SESSION['explorer'] ?? null;
+        return Sso::session();
     }
 
-    private function core(): \PDO {
-        return ExplorerInit::coreDb();
+    private function core(): ?\PDO {
+        return Kernel::coreDb();
     }
 
     /**
@@ -87,7 +90,7 @@ class Explore extends Control {
         if (!$s) { Flight::jsonError('Not signed in.', 401); return [null, null]; }
         $core = $this->core();
         if (!$core) { Flight::jsonError('Core directory unavailable.', 503); return [$s, null]; }
-        $access = new ExplorerAccess($core);
+        $access = new Access($core);
         $url = (string) (Flight::request()->query->url ?? '');
         if ($url === '' || $url === '/') {
             // "/" = the member's default accessible instance (never the control plane).
@@ -103,14 +106,14 @@ class Explore extends Control {
 
     /** Instance dir built ONLY from the resolved bean's slug/app (never client input). */
     private function instanceDir(array $inst): string {
-        $parent = dirname(rtrim((string) Flight::get('explorer.core_root'), '/'));  // /var/www/html/default
+        $parent = dirname(rtrim((string) Flight::get('sidecar.core_root'), '/'));  // /var/www/html/default
         $app = $inst['app'] !== '' ? $inst['app'] : 'tiknix';
         return $parent . '/' . $inst['slug'] . '.' . $app;
     }
 
     private function requireLaunch(): void {
-        $coreUrl = rtrim((string) (Flight::get('explorer.core_url') ?? ''), '/');
-        if ($coreUrl !== '') { Flight::redirect($coreUrl . '/explorer/launch'); return; }
+        $coreUrl = rtrim((string) (Flight::get('sidecar.core_url') ?? ''), '/');
+        if ($coreUrl !== '') { Flight::redirect($coreUrl . '/sidecar/launch/explorer'); return; }
         Flight::halt(403, 'Launch the Architecture Explorer from your tiknix dashboard.');
     }
 
