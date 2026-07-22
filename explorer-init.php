@@ -29,8 +29,11 @@ class ExplorerInit {
         $this->config   = @parse_ini_file($this->root . '/' . $configFile, true) ?: [];
         $this->coreRoot = rtrim((string) ($this->config['explorer']['core_root'] ?? '/var/www/html/default/tiknix'), '/');
 
-        $this->registerAutoloader();          // sidecar-first, core fallback
+        // ORDER MATTERS: require Composer's autoloader FIRST — it registers itself with
+        // prepend=true. THEN register ours (also prepend), so ours lands ahead of it and
+        // sidecar controllers (app\Index, …) win over core's identically-named classes.
         require $this->coreRoot . '/vendor/autoload.php';       // vendor + core composer PSR-4 (fallback)
+        $this->registerAutoloader();          // sidecar-first (must be after composer's register)
         require_once $this->coreRoot . '/lib/FlightMap.php';    // LEVELS, CLASS_NAMESPACE, Flight maps
         require_once $this->coreRoot . '/lib/functions.php';    // is_control_plane(), h(), …
 
