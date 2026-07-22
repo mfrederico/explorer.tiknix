@@ -20,11 +20,12 @@
 namespace app;
 
 use app\mcptools\Introspector;
+use app\mcptools\CallGraph;
 
 class ExplorerGraph {
 
     /** Bump when the model shape changes so cached rows invalidate. */
-    public const VERSION = 1;
+    public const VERSION = 2;   // v2: adds the CallGraph cross-reference graph
 
     /** Level → short label, for the ribbon color chips (mirrors LEVELS). */
     private const LEVEL_LABEL = [1 => 'ROOT', 50 => 'ADMIN', 100 => 'MEMBER', 101 => 'PUBLIC'];
@@ -64,14 +65,24 @@ class ExplorerGraph {
         }
         usort($controls, fn($a, $b) => strcmp($a['control'], $b['control']));
 
+        // The call/render/data cross-reference graph (Phase 2) — nodes+edges with
+        // path:line evidence. Built once; the page slices it per selection client-side.
+        $graph = (new CallGraph($intro))->build();
+
         return [
             'controls' => $controls,
             'tables'   => $intro->tables(),
             'routes'   => $intro->routeLiterals(),
+            'relations' => $intro->relationEdges(),
+            'graph'    => $graph,
             'meta'     => [
                 'codeHash' => $this->codeHash(),
                 'version'  => self::VERSION,
                 'controlCount' => count($controls),
+                'nodeCount'    => $graph['meta']['nodeCount'] ?? 0,
+                'edgeCount'    => $graph['meta']['edgeCount'] ?? 0,
+                'brokenCount'  => $graph['meta']['broken'] ?? 0,
+                'orphanCount'  => count($graph['meta']['orphans'] ?? []),
             ],
         ];
     }
@@ -82,7 +93,7 @@ class ExplorerGraph {
      */
     public function codeHash(): string {
         $root = rtrim($this->instanceDir, '/');
-        $parts = ['v' . self::VERSION];
+        $parts = ['v' . self::VERSION, 'cg' . CallGraph::VERSION];
         foreach (['controls', 'views', 'lib', 'models', 'routes', 'mcptools', 'services'] as $dir) {
             $count = 0; $maxMtime = 0;
             foreach ($this->walk("$root/$dir") as $f) {
