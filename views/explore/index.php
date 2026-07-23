@@ -70,14 +70,6 @@
 </style>
 </head>
 <body>
-<header>
-    <div class="brand">Architecture <span class="b">Explorer</span></div>
-    <span class="chip" id="freshness">—</span>
-    <div class="spacer"></div>
-    <span class="who"><?= htmlspecialchars($email) ?></span>
-    <a href="/sso/logout">Sign out</a>
-</header>
-
 <div class="scopebar">
     <label class="muted" style="font-size:0.85rem">Instance</label>
     <select id="instancePick">
@@ -87,6 +79,7 @@
     </select>
     <input id="urlInput" placeholder="…or paste an instance URL (/ = default)" value="<?= htmlspecialchars($initial) ?>">
     <button id="loadBtn">Explore</button>
+    <span class="chip" id="freshness" style="margin-left:auto">—</span>
 </div>
 
 <?php if (!$instances): ?>
