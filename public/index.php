@@ -10,7 +10,7 @@
 $cfg      = @parse_ini_file(dirname(__DIR__) . '/conf/config.ini', true) ?: [];
 $coreRoot = rtrim($cfg['sidecar']['core_root'] ?? '/var/www/html/default/tiknix', '/');
 
-require $coreRoot . '/lib/Sidecar/Kernel.php';
+require $coreRoot . '/vendor/autoload.php';  // Sidecar Kit (tiknix/sidecar-kit)
 
 app\Sidecar\Kernel::guard(['', 'sso', 'explore', 'index', 'error']);
 
