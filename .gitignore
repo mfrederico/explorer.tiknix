@@ -1,3 +1,9 @@
 conf/config.ini
 data/
 log/
+
+# AI Projects (workspace) sidecar: per-instance task data, never tracked
+data/workbench.db
+
+# sidecar error logs (per Kernel installLogger)
+logs/
