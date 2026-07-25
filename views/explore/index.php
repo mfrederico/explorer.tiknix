@@ -23,6 +23,9 @@
     .scopebar select, .scopebar input {
         background:rgba(255,255,255,0.07); border:1px solid var(--line); color:var(--text);
         border-radius:8px; padding:0.5rem 0.7rem; font-size:0.9rem; }
+    /* Native <option> popups are painted by the OS on white; this theme's light --text then
+       reads as light-grey on white. Pin options to the dark surface for correct contrast. */
+    select option, select optgroup { background:var(--bg); color:var(--text); }
     .scopebar input { min-width:280px; }
     .scopebar button { background:var(--accent); color:#fff; border:none; border-radius:8px; padding:0.5rem 0.9rem; font-weight:600; cursor:pointer; }
     .chip { font-size:0.72rem; color:var(--soft); padding:0.25rem 0.5rem; border:1px solid var(--line); border-radius:999px; }
