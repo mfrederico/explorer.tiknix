@@ -84,14 +84,14 @@
     <strong><?= htmlspecialchars($project['name'] ?? '—') ?></strong>
     <span class="muted" style="font-size:0.85rem"><?= htmlspecialchars($project['slug'] ?? '') ?></span>
     <input type="hidden" id="instancePick" value="<?= htmlspecialchars($project['slug'] ?? '') ?>">
-    <a href="<?= htmlspecialchars($projectsUrl) ?>" class="chip" style="text-decoration:none">Change project</a>
+    <a href="<?= htmlspecialchars($projectsUrl) ?>" target="_top" class="chip" style="text-decoration:none">Change project</a>
     <input id="urlInput" placeholder="…or paste an instance URL" value="<?= htmlspecialchars($initial) ?>">
     <button id="loadBtn">Explore</button>
     <span class="chip" id="freshness" style="margin-left:auto">—</span>
 </div>
 
 <?php if (!$project): ?>
-    <p class="hint">No project selected. <a href="<?= htmlspecialchars($projectsUrl) ?>">Choose one</a> to explore it.</p>
+    <p class="hint">No project selected. <a href="<?= htmlspecialchars($projectsUrl) ?>" target="_top">Choose one</a> to explore it.</p>
 <?php endif; ?>
 
 <div class="hint">Arrow keys ← → move across controls; ↓ / Enter drills into methods; Esc backs out.</div>
