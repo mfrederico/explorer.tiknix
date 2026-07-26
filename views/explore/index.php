@@ -73,20 +73,25 @@
 </style>
 </head>
 <body>
+<?php
+/* NO INSTANCE SELECTOR. The project is chosen once, in core, and every surface follows
+   that choice — a second picker here is how you could end up reading one project's
+   architecture while believing you were in another. The hidden input keeps the existing
+   JS contract (it reads #instancePick) without offering a choice. */
+?>
 <div class="scopebar">
-    <label class="muted" style="font-size:0.85rem">Instance</label>
-    <select id="instancePick">
-        <?php foreach ($instances as $i): ?>
-        <option value="<?= htmlspecialchars($i['slug']) ?>"><?= htmlspecialchars($i['name']) ?> (<?= htmlspecialchars($i['slug']) ?>)<?= $i['owned'] ? '' : ' · team' ?></option>
-        <?php endforeach; ?>
-    </select>
-    <input id="urlInput" placeholder="…or paste an instance URL (/ = default)" value="<?= htmlspecialchars($initial) ?>">
+    <label class="muted" style="font-size:0.85rem">Project</label>
+    <strong><?= htmlspecialchars($project['name'] ?? '—') ?></strong>
+    <span class="muted" style="font-size:0.85rem"><?= htmlspecialchars($project['slug'] ?? '') ?></span>
+    <input type="hidden" id="instancePick" value="<?= htmlspecialchars($project['slug'] ?? '') ?>">
+    <a href="<?= htmlspecialchars($projectsUrl) ?>" class="chip" style="text-decoration:none">Change project</a>
+    <input id="urlInput" placeholder="…or paste an instance URL" value="<?= htmlspecialchars($initial) ?>">
     <button id="loadBtn">Explore</button>
     <span class="chip" id="freshness" style="margin-left:auto">—</span>
 </div>
 
-<?php if (!$instances): ?>
-    <p class="hint">You have no instances to explore yet. Create one in the AI Builder on tiknix.com.</p>
+<?php if (!$project): ?>
+    <p class="hint">No project selected. <a href="<?= htmlspecialchars($projectsUrl) ?>">Choose one</a> to explore it.</p>
 <?php endif; ?>
 
 <div class="hint">Arrow keys ← → move across controls; ↓ / Enter drills into methods; Esc backs out.</div>
@@ -331,7 +336,7 @@ $('#ribbon').addEventListener('keydown', e => {
 $('#loadBtn').onclick = load;
 $('#urlInput').addEventListener('keydown', e => { if(e.key==='Enter') load(); });
 $('#instancePick').onchange = () => { $('#urlInput').value=''; load(); };
-if (<?= $instances ? 'true' : 'false' ?>) load();
+if (<?= $project ? 'true' : 'false' ?>) load();   /* only auto-load when a project is selected */
 </script>
 </body>
 </html>

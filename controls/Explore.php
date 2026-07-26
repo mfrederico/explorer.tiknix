@@ -27,10 +27,24 @@ class Explore extends Control {
         $s = $this->session();
         if (!$s) { $this->requireLaunch(); return; }
         $access = new Access($this->core());
+        $list   = $access->instances((int) $s['member_id']);
+
+        // The project chosen in core, matched against what this member may explore. The
+        // view shows it and links back to core to change it — it never offers a list.
+        $claim   = Sso::project();
+        $project = null;
+        if ($claim) {
+            foreach ($list as $i) {
+                if ((int) ($i['id'] ?? 0) === $claim['id']) { $project = $i; break; }
+            }
+        }
+
         $this->render('explore/index', [
-            'instances' => $access->instances((int) $s['member_id']),
-            'email'     => $s['email'],
-            'initial'   => (string) (Flight::request()->query->url ?? ''),
+            'instances'   => $list,
+            'project'     => $project,
+            'projectsUrl' => Sso::projectPickerUrl(),
+            'email'       => $s['email'],
+            'initial'     => (string) (Flight::request()->query->url ?? ''),
         ], false);
     }
 
@@ -93,10 +107,21 @@ class Explore extends Control {
         $access = new Access($core);
         $url = (string) (Flight::request()->query->url ?? '');
         if ($url === '' || $url === '/') {
-            // "/" = the member's default accessible instance (never the control plane).
-            $list = $access->instances((int) $s['member_id']);
-            $inst = $list[0] ?? null;
-            if (!$inst) { Flight::jsonError('You have no instances to explore.', 404); return [$s, null]; }
+            // No explicit target → the project chosen in CORE. Never "first accessible":
+            // that guess is what let the Explorer show a different project's architecture
+            // than the one you had selected elsewhere.
+            $list    = $access->instances((int) $s['member_id']);
+            $project = Sso::project();
+            $inst    = null;
+            if ($project) {
+                foreach ($list as $i) {
+                    if ((int) ($i['id'] ?? 0) === $project['id']) { $inst = $i; break; }
+                }
+            }
+            if (!$inst) {
+                Flight::jsonError('No project selected — choose one at ' . Sso::projectPickerUrl(), 409);
+                return [$s, null];
+            }
             return [$s, $inst];
         }
         $inst = $access->resolveInstance($url, (int) $s['member_id']);
