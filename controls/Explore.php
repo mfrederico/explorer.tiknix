@@ -29,15 +29,8 @@ class Explore extends Control {
         $access = new Access($this->core());
         $list   = $access->instances((int) $s['member_id']);
 
-        // The project chosen in core, matched against what this member may explore. The
-        // view shows it and links back to core to change it — it never offers a list.
-        $claim   = Sso::project();
-        $project = null;
-        if ($claim) {
-            foreach ($list as $i) {
-                if ((int) ($i['id'] ?? 0) === $claim['id']) { $project = $i; break; }
-            }
-        }
+        // ONE resolution point — never a local match, never a default.
+        $project = Sso::projectInstance($access, (int) $s['member_id']);
 
         $this->render('explore/index', [
             'instances'   => $list,
@@ -107,17 +100,8 @@ class Explore extends Control {
         $access = new Access($core);
         $url = (string) (Flight::request()->query->url ?? '');
         if ($url === '' || $url === '/') {
-            // No explicit target → the project chosen in CORE. Never "first accessible":
-            // that guess is what let the Explorer show a different project's architecture
-            // than the one you had selected elsewhere.
-            $list    = $access->instances((int) $s['member_id']);
-            $project = Sso::project();
-            $inst    = null;
-            if ($project) {
-                foreach ($list as $i) {
-                    if ((int) ($i['id'] ?? 0) === $project['id']) { $inst = $i; break; }
-                }
-            }
+            // No explicit target → the selected project. Never "first accessible".
+            $inst = Sso::projectInstance($access, (int) $s['member_id']);
             if (!$inst) {
                 Flight::jsonError('No project selected — choose one at ' . Sso::projectPickerUrl(), 409);
                 return [$s, null];
