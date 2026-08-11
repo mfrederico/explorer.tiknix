@@ -113,11 +113,12 @@ class Explore extends Control {
         return [$s, $inst];
     }
 
-    /** Instance dir built ONLY from the resolved bean's slug/app (never client input). */
+    /**
+     * Instance dir built ONLY from the resolved bean's slug/app (never client input).
+     * The path rule itself is core's — Model_Instance::dirFrom.
+     */
     private function instanceDir(array $inst): string {
-        $parent = dirname(rtrim((string) Flight::get('sidecar.core_root'), '/'));  // /var/www/html/default
-        $app = $inst['app'] !== '' ? $inst['app'] : 'tiknix';
-        return $parent . '/' . $inst['slug'] . '.' . $app;
+        return \Model_Instance::dirFrom((string) $inst['slug'], (string) ($inst['app'] ?? ''));
     }
 
     private function requireLaunch(): void {
